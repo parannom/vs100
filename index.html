@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스테이지 기반 전투 게임</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #map {
+            display: grid;
+            grid-template-columns: repeat(5, 100px);
+            grid-template-rows: repeat(5, 86px);
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding-top: 20px;
+            margin: 0 auto;  /* 중앙 정렬 */
+            max-width: 600px;  /* 맵의 최대 너비 */
+        }
+        .tile {
+            position: relative;
+            width: 100px;
+            height: 86px;
+            background-color: #aaa;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            color: #fff;
+        }
+        .tile:hover {
+            background-color: #888;
+        }
+        #battlefield {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background-color: #fff;
+            border: 2px solid #000;
+            margin: 20px auto;
+            display: none;
+        }
+        .card {
+            width: 200px;
+            height: 100px;
+            border: 2px solid #000;
+            display: inline-block;
+            text-align: center;
+            padding: 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        #stats {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #eee;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .soldier {
+            transition: transform 0.1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="battlefield"></div>
+    <div id="card-selection" style="text-align: center; display: none;">
+        <div id="attack-card" class="card" onclick="selectCard('attack')">공격력 증가</div>
+        <div id="defense-card" class="card" onclick="selectCard('defense')">체력 증가</div>
+        <div class="card" onclick="selectCard('reinforcement')">병사 증가</div>
+    </div>
+    <div id="stats"></div> <!-- 병사 스탯을 표시할 div -->
+    <script src="script.js"></script>
+</body>
+</html>
