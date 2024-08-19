@@ -152,8 +152,8 @@ function createMap() {
             tile.dataset.cleared = 'true'; // 시작 타일은 이미 클리어된 것으로 간주
         } else if (i === endTileIndex) {
             tile.style.backgroundColor = '#f44336'; // 끝 타일 색상 (빨간색)
-            tile.innerText = '끝 (적 20명)';
-            tile.dataset.enemyCount = 20; // 끝 타일의 적 수
+            tile.innerText = '끝 (적 10명)';
+            tile.dataset.enemyCount = 10; // 끝 타일의 적 수
         } else {
             tile.innerText = Math.floor(Math.random() * 10) + 1;  // 랜덤 적 병사 수
             tile.dataset.cleared = 'false'; // 타일의 초기 상태를 설정
