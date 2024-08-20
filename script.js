@@ -34,7 +34,7 @@ function playBeep() {
     oscillator.type = 'square';
 
     // 음량 설정
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // 0.1은 음량
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime); // 0.1은 음량
 
     // 소리 재생
     oscillator.start();
