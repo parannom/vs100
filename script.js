@@ -164,8 +164,8 @@ function createMap() {
             tile.dataset.cleared = 'true'; // 시작 타일은 이미 클리어된 것으로 간주
         } else if (i === endTileIndex) {
             tile.style.backgroundColor = '#f44336'; // 끝 타일 색상 (빨간색)
-            tile.innerText = '끝 (적 10명)';
-            tile.dataset.enemyCount = 10; // 끝 타일의 적 수
+            tile.innerText = '끝 (적 20명)';
+            tile.dataset.enemyCount = 20; // 끝 타일의 적 수
         } else {
             tile.innerText = Math.floor(Math.random() * 10) + 1;  // 랜덤 적 병사 수
             tile.dataset.cleared = 'false'; // 타일의 초기 상태를 설정
@@ -320,44 +320,83 @@ function simulateBattle(tile) {
     }
 
     playerSoldiers.forEach((soldierA) => {
-        const soldierB = soldierA.target; // 할당된 타겟을 추적
-        if (!soldierA || !soldierB) return;
+        if (!soldierA.target || !enemySoldiers.includes(soldierA.target)) {
+            soldierA.target = findClosestEnemy(soldierA, enemySoldiers);
+        }
 
-        // 적도 움직이도록 설정
-        soldierB.moveToward(soldierA);
-        soldierA.moveToward(soldierB);
+        if (soldierA.target) {
+            soldierA.moveToward(soldierA.target);
 
-        const dx = soldierB.element.offsetLeft - soldierA.element.offsetLeft;
-        const dy = soldierB.element.offsetTop - soldierA.element.offsetTop;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+            const dx = soldierA.target.element.offsetLeft - soldierA.element.offsetLeft;
+            const dy = soldierA.target.element.offsetTop - soldierA.element.offsetTop;
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance <= 5) {
-            // 비프음 재생
-            playBeep();
+            if (distance <= 5) {
+                playBeep();
+                soldierA.takeDamage(soldierA.target.attackPower);
+                soldierA.target.takeDamage(soldierA.attackPower);
 
-            soldierA.takeDamage(soldierB.attackPower);
-            soldierB.takeDamage(soldierA.attackPower);
-
-            if (soldierA.health <= 0) {
-                playerSoldiers.splice(playerSoldiers.indexOf(soldierA), 1);
-                soldierA.target = null;  // 타겟 초기화
-            }
-            if (soldierB.health <= 0) {
-                enemySoldiers.splice(enemySoldiers.indexOf(soldierB), 1);
-                soldierA.target = null;  // 타겟 초기화
+                if (soldierA.health <= 0) {
+                    playerSoldiers.splice(playerSoldiers.indexOf(soldierA), 1);
+                }
+                if (soldierA.target.health <= 0) {
+                    enemySoldiers.splice(enemySoldiers.indexOf(soldierA.target), 1);
+                }
             }
         }
     });
 
-    // 타겟이 사라졌다면 다시 분배
-    playerSoldiers.forEach(soldier => {
-        if (!soldier.target && enemySoldiers.length > 0) {
-            distributeTargets();
+    enemySoldiers.forEach((soldierB) => {
+        if (!soldierB.target || !playerSoldiers.includes(soldierB.target)) {
+            soldierB.target = findClosestEnemy(soldierB, playerSoldiers);
+        }
+
+        if (soldierB.target) {
+            soldierB.moveToward(soldierB.target);
+
+            const dx = soldierB.target.element.offsetLeft - soldierB.element.offsetLeft;
+            const dy = soldierB.target.element.offsetTop - soldierB.element.offsetTop;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= 5) {
+                playBeep();
+                soldierB.takeDamage(soldierB.target.attackPower);
+                soldierB.target.takeDamage(soldierB.attackPower);
+
+                if (soldierB.health <= 0) {
+                    enemySoldiers.splice(enemySoldiers.indexOf(soldierB), 1);
+                }
+                if (soldierB.target.health <= 0) {
+                    playerSoldiers.splice(playerSoldiers.indexOf(soldierB.target), 1);
+                }
+            }
         }
     });
 
     requestAnimationFrame(() => simulateBattle(tile));
 }
+
+// 가장 가까운 적을 찾는 함수
+function findClosestEnemy(soldier, enemies) {
+    let closestEnemy = null;
+    let closestDistance = Infinity;
+
+    enemies.forEach(enemy => {
+        const dx = enemy.element.offsetLeft - soldier.element.offsetLeft;
+        const dy = enemy.element.offsetTop - soldier.element.offsetTop;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestEnemy = enemy;
+        }
+    });
+
+    return closestEnemy;
+}
+
+
+
 
 // 전투 종료 처리
 function endBattle(tile) {
