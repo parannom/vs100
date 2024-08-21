@@ -12,6 +12,7 @@ let clearedTiles = 0; // 클리어한 타일의 수를 추적
 let startTileIndex = 0; // 시작 타일 인덱스
 let endTileIndex = 24;  // 끝 타일 인덱스
 let currentTileIndex = startTileIndex; // 현재 플레이어의 위치
+let isMuted = false; // 음소거 상태를 추적
 
 let attackIncrease;
 let healthIncrease;
@@ -19,27 +20,38 @@ let healthIncrease;
 // Web Audio API로 오디오 컨텍스트 생성
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-// 비프음 생성 함수
+// 음소거 버튼 추가
+function createMuteButton() {
+    const muteButton = document.createElement('button');
+    muteButton.innerText = '🔈 음소거';
+    muteButton.style.position = 'absolute';
+    muteButton.style.top = '10px';
+    muteButton.style.right = '10px';
+    muteButton.style.fontSize = '20px';
+
+    muteButton.onclick = () => {
+        isMuted = !isMuted;
+        muteButton.innerText = isMuted ? '🔇 음소거 해제' : '🔈 음소거';
+    };
+
+    document.body.appendChild(muteButton);
+}
+
+// 비프음 생성 함수 (음소거 기능 적용)
 function playBeep() {
+    if (isMuted) return; // 음소거 상태라면 소리를 재생하지 않음
+
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    // 주파수 설정 (비프음의 높낮이 결정)
     oscillator.frequency.value = 440; // A4 음
-
-    // 파형 유형 설정 (사각파가 16비트 게임과 비슷한 느낌을 줌)
     oscillator.type = 'square';
-
-    // 음량 설정
     gainNode.gain.setValueAtTime(0, audioContext.currentTime); // 0.1은 음량
 
-    // 소리 재생
     oscillator.start();
-    
-    // 일정 시간 후 소리 정지
     oscillator.stop(audioContext.currentTime + 0.1); // 0.1초 동안 재생
 }
 
@@ -283,6 +295,7 @@ function startBattle(tile) {
 
     if (playerSoldiers.length === 0) {
         alert('게임 오버!');
+        createRestartButton(); // 게임 오버 시 재시작 버튼 표시
     } else {
         // 전투 로직
         distributeTargets(); // 병사들이 적을 적절히 나누어 타겟팅
@@ -362,13 +375,14 @@ function endBattle(tile) {
         }
     } else {
         alert('게임 오버!');
+        createRestartButton(); // 게임 오버 시 재시작 버튼 표시
     }
 }
 
 // 폭죽 애니메이션과 승리 메시지 표시
 function showVictory() {
     const victoryMessage = document.createElement('div');
-    victoryMessage.innerText = '점령 성공!';
+    victoryMessage.innerText = `점령 성공! 남은 병사: ${playerSoldiers.length}명`;
     victoryMessage.style.fontSize = '48px';
     victoryMessage.style.color = 'gold';
     victoryMessage.style.position = 'absolute';
@@ -378,10 +392,14 @@ function showVictory() {
     victoryMessage.style.textAlign = 'center';
     document.body.appendChild(victoryMessage);
 
-    // 폭죽 애니메이션을 추가하는 부분
-    for (let i = 0; i < 20; i++) {
-        createFirework();
-    }
+    createRestartButton(); // 승리 시 재시작 버튼 표시
+
+    // 반복적인 폭죽 애니메이션을 추가하는 부분
+    setInterval(() => {
+        for (let i = 0; i < 20; i++) {
+            createFirework();
+        }
+    }, 1000); // 1초마다 폭죽 애니메이션을 반복적으로 실행
 }
 
 // 폭죽 생성 함수
@@ -412,6 +430,23 @@ function createFirework() {
             }, 500);
         }, 500);
     }, Math.random() * 500);
+}
+
+// 게임 재시작 버튼 추가
+function createRestartButton() {
+    const restartButton = document.createElement('button');
+    restartButton.innerText = '🔄 재시작';
+    restartButton.style.position = 'absolute';
+    restartButton.style.top = '70%';
+    restartButton.style.left = '50%';
+    restartButton.style.transform = 'translate(-50%, -50%)';
+    restartButton.style.fontSize = '24px';
+
+    restartButton.onclick = () => {
+        document.location.reload(); // 페이지를 새로고침하여 게임을 재시작
+    };
+
+    document.body.appendChild(restartButton);
 }
 
 // 카드 선택 화면
@@ -448,6 +483,11 @@ function selectCard(type) {
     }
 }
 
-// 맵 초기화 후 카드 혜택도 초기화
-createMap();
-randomizeCardBenefits();  // 게임 시작 시 카드 혜택을 랜덤화
+// 게임 초기화 함수
+function initGame() {
+    createMap();
+    randomizeCardBenefits();
+//    createMuteButton(); // 음소거 버튼 추가
+}
+
+initGame();
